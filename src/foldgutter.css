@@ -18,3 +18,9 @@
   .CodeMirror-foldgutter-folded:after {
     content: "\25B8";
   }
+
+
+.CodeMirror-gutters {
+     border-right: 1px solid  #fff;
+     background-color: #fff;
+}
