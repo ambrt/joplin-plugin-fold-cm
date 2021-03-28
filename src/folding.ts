@@ -22,8 +22,14 @@ function plugin(CodeMirror) {
 	function on_gutter(cm, lineNr, gutter){
 		console.log('gutter line clicked')
 		let doc = cm.getDoc()
+
 		
+
 		let line = doc.getLineHandle(lineNr)
+		if("gutterMarkers" in line){
+			if("CodeMirror-foldgutter" in line.gutterMarkers){
+		
+
 		let lineOldText = line.text
 		
 		let lastChar = lineOldText.charAt(lineOldText.length-1)
@@ -35,6 +41,7 @@ function plugin(CodeMirror) {
 			let lastLength = lineOldText.length
 			doc.replaceRange(lineOldText+indicator,{line:lineNr, ch:0 },{line:lineNr, ch:lastLength+1})
 		}
+	}}
 		//let marks = doc.getAllMarks()
 	}
 	function on_change(cm, change) {
