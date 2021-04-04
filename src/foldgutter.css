@@ -12,15 +12,21 @@
   .CodeMirror-foldgutter-folded {
     cursor: pointer;
   }
-  .CodeMirror-foldgutter-open:after {
-    content: "\25BE";
-  }
-  .CodeMirror-foldgutter-folded:after {
-    content: "\25B8";
-  }
+
 
 
 .CodeMirror-gutters {
      border-right: 1px solid  #fff;
      background-color: #fff;
+   
+}
+
+
+
+
+.CodeMirror-foldgutter-open:after {
+  content: "\25BE";
+}
+.CodeMirror-foldgutter-folded:after {
+  content: "\25B8";
 }
