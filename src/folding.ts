@@ -62,6 +62,8 @@ function plugin(CodeMirror) {
 
 
 
+		try {
+			
 		
 		if ("gutterMarkers" in line) {
 			if ("CodeMirror-foldgutter" in line.gutterMarkers) {
@@ -84,6 +86,9 @@ function plugin(CodeMirror) {
 				}
 			}
 		}
+	} catch (error) {
+	console.log(error)		
+	}
 		//let marks = doc.getAllMarks()
 	}
 	function on_change(cm, change) {
@@ -125,7 +130,7 @@ function plugin(CodeMirror) {
 		if (marks.length == 0) {
 			let guttered = []
 			function myLine(line) {
-				
+				try{
 				if ("gutterMarkers" in line) {
 					if ("CodeMirror-foldgutter" in line.gutterMarkers) {
 						//console.log(line)
@@ -134,6 +139,9 @@ function plugin(CodeMirror) {
 						guttered.push({ line: line, ln: lineNumber })
 					}
 				}
+			}catch(err){
+				console.log(err)
+			}
 				
 		
 			}
