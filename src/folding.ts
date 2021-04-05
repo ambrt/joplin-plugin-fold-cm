@@ -24,7 +24,7 @@ function plugin(CodeMirror) {
 		let doc = cm.getDoc()
 		let line = doc.getLineHandle(lineNr)
 		function myLine(lineEach) {
-
+try{
 			if (lineEach.text.includes("![")) {
 				
 					let richMdNr = doc.getLineNumber(lineEach)
@@ -56,13 +56,13 @@ function plugin(CodeMirror) {
 
 				}
 			
+			
 		}
 		doc.eachLine(myLine)
 
 
 
-
-		
+try{		
 		if ("gutterMarkers" in line) {
 			if ("CodeMirror-foldgutter" in line.gutterMarkers) {
 
@@ -84,6 +84,9 @@ function plugin(CodeMirror) {
 				}
 			}
 		}
+	} catch(err){
+		console.log(err)
+	}
 		//let marks = doc.getAllMarks()
 	}
 	function on_change(cm, change) {
@@ -125,7 +128,7 @@ function plugin(CodeMirror) {
 		if (marks.length == 0) {
 			let guttered = []
 			function myLine(line) {
-				
+				try {
 				if ("gutterMarkers" in line) {
 					if ("CodeMirror-foldgutter" in line.gutterMarkers) {
 						//console.log(line)
@@ -134,7 +137,9 @@ function plugin(CodeMirror) {
 						guttered.push({ line: line, ln: lineNumber })
 					}
 				}
-				
+			} catch(err){
+				console.log(err)
+			}
 		
 			}
 			doc.eachLine(myLine)
