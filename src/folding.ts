@@ -1,22 +1,120 @@
 
 // Content scripts that extend the funcitonality of codemirror will need to have the exact signature 
-
-import { Console } from "node:console";
-import { disconnect } from "node:process";
-
 // below. 
 function plugin(CodeMirror) {
+
+	CodeMirror.defineExtension("foldAllByPlugin", function () {
+		//"Ctrl-Y": cm => CodeMirror.commands.foldAll(cm),
+		//Ctrl-I": cm => CodeMirror.commands.unfoldAll(cm),
+		let cm = this
+		let doc = cm.getDoc()
+		cm.operation(function(){
+		console.log("fold all by plugin")
+		for (var l = cm.lastLine(); l >= cm.firstLine(); --l) {
+			let lineText = cm.getLine(l)
+			if (lineText.charAt(0) == "#" && lineText.indexOf(" ")>0 && lineText.charAt(lineText.length-1)!=".") {
+				//console.log("line to fold in all")
+				let line = cm.getLineHandle(l)
+				//console.log(line)
+				let lineNr = l;
+				try {
+					if ("gutterMarkers" in line) {
+						if ("CodeMirror-foldgutter" in line.gutterMarkers) {
+
+
+							
+							//let lastLine = line.parent.lines[line.parent.lines.length - 1]
+							
+							let lastLength = lineText.length
+
+							doc.replaceRange(lineText + indicator, { line: lineNr, ch: 0 }, { line: lineNr, ch: lastLength +1 })
+							cm.foldCode(CodeMirror.Pos(lineNr, lastLength - 1), null, "fold");
+						}
+					}
+				} catch (error) {
+					console.log("fold all error");
+					
+					console.log(error)
+				}
+				//let marks = doc.getAllMarks()
+			}
+
+
+
+
+
+
+		}
+	})
+
+	})
+
+	CodeMirror.defineExtension("unfoldAllByPlugin", function () {
+		//"Ctrl-Y": cm => CodeMirror.commands.foldAll(cm),
+		//Ctrl-I": cm => CodeMirror.commands.unfoldAll(cm),
+		let cm = this
+		let doc = cm.getDoc()
+		console.log("unfold all by plugin")
+		cm.operation(function(){
+		for (var l = cm.lastLine(); l >= cm.firstLine(); --l) {
+			let lineText = cm.getLine(l)
+			if (lineText.charAt(0) == "#" && lineText.indexOf(" ") > 0) {
+				//console.log("line to fold in all")
+				let line = cm.getLineHandle(l)
+				//console.log(line)
+				let lineNr = l;
+	
+				let lastChar = lineText.charAt(lineText.length - 1)
+				
+				try {
+					if ("gutterMarkers" in line) {
+						if ("CodeMirror-foldgutter" in line.gutterMarkers) {
+
+							let lastLength = lineText.length
+							if (lastChar == indicator) {
+								//unfold
+								
+								doc.replaceRange(lineText.slice(0, -1), { line: lineNr, ch: 0 }, { line: lineNr, ch: lastLength })
+								
+							} 
+							cm.foldCode(CodeMirror.Pos(lineNr, lastLength - 1), null, "unfold");
+						}
+					}
+				} catch (error) {
+					console.log("unfold all error");
+					
+					console.log(error)
+				}
+				//let marks = doc.getAllMarks()
+			}
+
+
+
+
+
+
+		}
+	})
+	})
+
+	
+
+
 
 	let indicator = "."
 	CodeMirror.defineExtension('persistentFolding', function () {
 
-		this.on('change', on_change);
-		this.on('update', on_change);
+		//this.on('change', on_change);
+		this.on("viewportChange", on_viewportChange)
+		this.on("changes", on_changes)
+		//this.on("viewportChange", on_change)
+		//this.on("scroll", on_change)
+		//this.on('update', on_change);
+		//this.on('refresh', on_change);
+		this.on("focus", on_change)
 
 		this.on("gutterClick", on_gutter);
-
-
-
+		console.log("folding is activated")
 	});
 
 	function on_gutter(cm, lineNr, gutter) {
@@ -26,36 +124,37 @@ function plugin(CodeMirror) {
 		function myLine(lineEach) {
 
 			if (lineEach.text.includes("![")) {
-				
-					let richMdNr = doc.getLineNumber(lineEach)
-					let nextRichMdNr = richMdNr + 1
-					console.log(line)
-					try{
-						let nextRichMdLine = doc.getLineHandle(nextRichMdNr)
-						console.log(nextRichMdLine)
-						console.log(nextRichMdLine.text.indexOf("#") )
+				// fix compatitiblity with RichMarkdown preview of image
+				let richMdNr = doc.getLineNumber(lineEach)
+				let nextRichMdNr = richMdNr + 1
+				//console.log(line)
+				try {
+					let nextRichMdLine = doc.getLineHandle(nextRichMdNr)
+					//console.log(nextRichMdLine)
+					//console.log(nextRichMdLine.text.indexOf("#"))
 					if (nextRichMdLine.text.indexOf("#") == 0) {
-						var pos = { // create a new object to avoid mutation of the original selection
+						let pos = { // create a new object to avoid mutation of the original selection
 							line: lineEach.text,
 							ch: lineEach.text.length - 1 // set the character position to the end of the line
 						}
-						doc.replaceRange("\n"+nextRichMdLine.text, { line: nextRichMdNr, ch: 0 }, { line: nextRichMdNr, ch: nextRichMdLine.text.length + 1 })
+						doc.replaceRange("\n" + nextRichMdLine.text, { line: nextRichMdNr, ch: 0 }, { line: nextRichMdNr, ch: nextRichMdLine.text.length + 1 })
 						cm.foldCode(CodeMirror.Pos(lineNr, lineEach.text.length))
 						cm.foldCode(CodeMirror.Pos(lineNr, lineEach.text.length))
 
 					}
-				}catch(err){
+				} catch (err) {
+					
 					console.log(err)
 					let lastEditorLineNr = doc.lastLine()
 					let lastEditorLine = doc.getLineHandle(lastEditorLineNr)
 					console.log(lastEditorLine)
-					doc.replaceRange(lastEditorLine.text+"\n", { line: lastEditorLineNr, ch: 0 }, { line: lastEditorLineNr, ch: lastEditorLine.text.length + 1 })
+					doc.replaceRange(lastEditorLine.text + "\n", { line: lastEditorLineNr, ch: 0 }, { line: lastEditorLineNr, ch: lastEditorLine.text.length + 1 })
 					cm.foldCode(CodeMirror.Pos(lineNr, lineEach.text.length))
 					cm.foldCode(CodeMirror.Pos(lineNr, lineEach.text.length))
 				}
 
-				}
-			
+			}
+
 		}
 		doc.eachLine(myLine)
 
@@ -63,42 +162,76 @@ function plugin(CodeMirror) {
 
 
 		try {
-			
-		
-		if ("gutterMarkers" in line) {
-			if ("CodeMirror-foldgutter" in line.gutterMarkers) {
 
 
-				let lineOldText = line.text
-				//let lastLine = line.parent.lines[line.parent.lines.length - 1]
-				let lastChar = lineOldText.charAt(lineOldText.length - 1)
-				if (lastChar == indicator) {
-					//unfold
-					let lastLength = lineOldText.length
-					doc.replaceRange(lineOldText.slice(0, -1), { line: lineNr, ch: 0 }, { line: lineNr, ch: lastLength })
-				} else {
-					//fold
+			if ("gutterMarkers" in line) {
+				if ("CodeMirror-foldgutter" in line.gutterMarkers) {
 
-			
-					let lastLength = lineOldText.length
-					doc.replaceRange(lineOldText + indicator, { line: lineNr, ch: 0 }, { line: lineNr, ch: lastLength + 1 })
-					
+
+					let lineOldText = line.text
+					//let lastLine = line.parent.lines[line.parent.lines.length - 1]
+					let lastChar = lineOldText.charAt(lineOldText.length - 1)
+					if (lastChar == indicator) {
+						//unfold
+						let lastLength = lineOldText.length
+						doc.replaceRange(lineOldText.slice(0, -1), { line: lineNr, ch: 0 }, { line: lineNr, ch: lastLength })
+						cm.foldCode(CodeMirror.Pos(lineNr, lastLength - 1), null, "unfold");
+					} else {
+						//fold
+
+
+						let lastLength = lineOldText.length
+						doc.replaceRange(lineOldText + indicator, { line: lineNr, ch: 0 }, { line: lineNr, ch: lastLength + 1 })
+
+					}
 				}
 			}
+		} catch (error) {
+			console.log(error)
 		}
-	} catch (error) {
-	console.log(error)		
-	}
 		//let marks = doc.getAllMarks()
 	}
+
+	function on_changes(cm, cs) {
+
+		//console.log("changes")
+		//console.log(cs)
+	}
+
+	function on_viewportChange(cm, from, to) {
+		//console.log(from, to)
+
+		if (from == 0 && to < 300) {
+			for (var l = cm.lastLine(); l >= cm.firstLine(); --l) {
+				let lineText = cm.getLine(l)
+				if (lineText.charAt(0) == "#" && lineText.charAt(lineText.length - 1) == ".") {
+					// console.log("line to fold")
+					let line = cm.getLineHandle(l)
+					//console.log(line)
+
+					if (typeof line.gutterMarkers != "undefined" && typeof line.gutterMarkers['CodeMirror-foldgutter'] != "undefined" && typeof line.gutterMarkers['CodeMirror-foldgutter'].className != "undefined" && line.gutterMarkers['CodeMirror-foldgutter'].className.includes("CodeMirror-foldgutter-folded")) {
+						//console.log("its already folded")
+
+					} else {
+						//console.log("folding from viewport")
+						cm.foldCode(CodeMirror.Pos(l, lineText.length), null, "fold");
+					}
+				}
+
+
+			}
+		}
+
+	}
 	function on_change(cm, change) {
-		console.log("change")
+		//console.log("change")
+		//console.log(change)
 		// Changed note here
 		// Fold all to be folded
 		let doc = cm.getDoc()
 		//console.log(doc)
 		//console.log(change)
-		let res = {
+		/*let res = {
 			value: cm.getValue(),
 			selections: doc.listSelections(),
 			marks: [],
@@ -106,7 +239,9 @@ function plugin(CodeMirror) {
 		};
 
 		let marks = doc.getAllMarks()
-		//console.log(marks)
+		console.log("marks")
+		console.log(marks)
+		*/
 		/*
 		if ( marks.length ){
 			// We reverse the array in order to start in the last folded parts in case of nesting
@@ -124,54 +259,247 @@ function plugin(CodeMirror) {
 			
 		  }
 		  */
-		let lastEditorLine = cm.lastLine()
+
+
+
+
+
+		/*
+				function doMarks() {
+					//console.log("marks length")
+					//console.log(marks.length)
+					let toFold = []
+					function myLine(line) {
+						try {
+							if ("gutterMarkers" in line) {
+								if ("CodeMirror-foldgutter" in line.gutterMarkers) {
 		
-		console.log(marks.length)
-		if (marks.length == 0) {
-			let guttered = []
-			function myLine(line) {
-				try{
-				if ("gutterMarkers" in line) {
-					if ("CodeMirror-foldgutter" in line.gutterMarkers) {
-						//console.log(line)
-						let lineNumber = doc.getLineNumber(line)
-						//cm.foldCode(CodeMirror.Pos(lineNumber))
-						guttered.push({ line: line, ln: lineNumber })
+		
+									if (line.gutterMarkers['CodeMirror-foldgutter'].className.includes("CodeMirror-foldgutter-folded")) {
+										console.log("its already folded")
+		
+									} else {
+										console.log("to check if to be folded")
+										//console.log(line)
+										let lineNumber = doc.getLineNumber(line)
+										//cm.foldCode(CodeMirror.Pos(lineNumber))
+										toFold.push({ line: line, ln: lineNumber })
+									}
+								}
+							}
+						} catch (err) {
+							console.log(err)
+						}
+		
+		
 					}
+		
+		
+		
+					doc.eachLine(myLine)
+					console.log("toFold")
+					console.log(toFold)
+		
+		
+		
+					if (toFold.length >0) {
+						// We reverse the array in order to start in the last folded parts in case of nesting
+						for (var i = toFold.length - 1; i >= 0; i--) {
+		
+							let line = toFold[i].line
+							let lineOldText = line.text
+		
+							let lastChar = lineOldText.charAt(lineOldText.length - 1)
+		
+							if (lastChar == indicator) {
+								try {
+								
+											//console.log(line)
+											//let lineNumber = doc.getLineNumber(line)
+											//cm.foldCode(CodeMirror.Pos(lineNumber))
+											
+											cm.foldCode(CodeMirror.Pos(toFold[i].ln, line.text.length))
+									
+								} catch (err) {
+									console.log(err)
+								}
+		
+								
+		
+							}
+		
+		
+		
+		
+						}
+		
+					}
+		
 				}
+		try{
+				if(change.removed[0]==change.text[0]+"." && change.removed[0].charAt(0)=="#" && change.text[0].charAt(0)=="#"){
+					console.log("its unfolding")
+		
+				}
+			   else if(change.removed[0]+"."==change.text[0] && change.removed[0].charAt(0)=="#" && change.text[0].charAt(0)=="#"){
+				  console.log("its folding")
+		
+			  } else if(change.origin !== undefined){
+				console.log("it has origin")
+			  }
+			  else{
+				//doMarks()  
+			  }
 			}catch(err){
 				console.log(err)
 			}
-				
-		
-			}
-			doc.eachLine(myLine)
+		*/
+		//cm.operation(function() { 
+		//for (var l = cm.firstLine(); l <= cm.lastLine(); ++l) 
+		//cm.foldCode({line: l, ch: 0}, null, "fold"); 
 
-			console.log(guttered)
-			if (guttered.length) {
-				// We reverse the array in order to start in the last folded parts in case of nesting
-				for (var i = guttered.length - 1; i >= 0; i--) {
+		for (var l = cm.lastLine(); l >= cm.firstLine(); --l) {
+			let lineText = cm.getLine(l)
+			if (lineText.charAt(0) == "#" && lineText.charAt(lineText.length - 1) == ".") {
+				// console.log("line to fold")
+				let line = cm.getLineHandle(l)
+				//console.log(line)
 
-					let line = guttered[i].line
-					let lineOldText = line.text
+				if (typeof line.gutterMarkers != "undefined" && typeof line.gutterMarkers['CodeMirror-foldgutter'] != "undefined" && typeof line.gutterMarkers['CodeMirror-foldgutter'].className != "undefined" && line.gutterMarkers['CodeMirror-foldgutter'].className.includes("CodeMirror-foldgutter-folded")) {
+					//console.log("its already folded on focus")
 
-					let lastChar = lineOldText.charAt(lineOldText.length - 1)
-
-					if (lastChar == indicator) {
-
-						cm.foldCode(CodeMirror.Pos(guttered[i].ln, guttered[i].line.text.length))
-
-					}
-
-
-
-
+				} else {
+					//console.log("folding on focus")
+					cm.foldCode(CodeMirror.Pos(l, 0));
 				}
-
 			}
+
 
 		}
 
+
+		let toFold = []
+		/*
+		function myLine(line) {
+			try {
+				if ("gutterMarkers" in line) {
+					if ("CodeMirror-foldgutter" in line.gutterMarkers) {
+
+
+						if (line.gutterMarkers['CodeMirror-foldgutter'].className.includes("CodeMirror-foldgutter-folded")) {
+							console.log("its already folded")
+
+						} else {
+							console.log("to check if to be folded")
+							//console.log(line)
+							let lineNumber = doc.getLineNumber(line)
+							//cm.foldCode(CodeMirror.Pos(lineNumber))
+							toFold.push({ line: line, ln: lineNumber })
+						}
+					}
+				}
+			} catch (err) {
+				console.log(err)
+			}
+
+
+		}
+
+
+
+		//doc.eachLine(myLine)*/
+		//console.log("toFold")
+		//console.log(toFold)
+
+
+		/*
+		if (toFold.length >0) {
+			// We reverse the array in order to start in the last folded parts in case of nesting
+			for (var i = toFold.length - 1; i >= 0; i--) {
+
+				let line = toFold[i].line
+				let lineOldText = line.text
+
+				let lastChar = lineOldText.charAt(lineOldText.length - 1)
+
+				if (lastChar == indicator) {
+					try {
+					
+								//console.log(line)
+								//let lineNumber = doc.getLineNumber(line)
+								//cm.foldCode(CodeMirror.Pos(lineNumber))
+								
+								cm.foldCode(CodeMirror.Pos(toFold[i].ln, line.text.length))
+						
+					} catch (err) {
+						console.log(err)
+					}
+
+					
+
+				}
+
+
+
+
+			}
+		}
+
+*/
+
+
+		// });
+
+
+
+
+		//cm.operation(doMarks)
+
+		/*
+		
+			if (marks.length == 0 && false) {
+				
+				function myLine(line) {
+					try{
+					if ("gutterMarkers" in line) {
+						if ("CodeMirror-foldgutter" in line.gutterMarkers) {
+							//console.log(line)
+							let lineNumber = doc.getLineNumber(line)
+							//cm.foldCode(CodeMirror.Pos(lineNumber))
+							guttered.push({ line: line, ln: lineNumber })
+						}
+					}
+				}catch(err){
+					console.log(err)
+				}
+					
+			
+				}
+				
+				if (guttered.length) {
+					// We reverse the array in order to start in the last folded parts in case of nesting
+					for (var i = guttered.length - 1; i >= 0; i--) {
+	
+						let line = guttered[i].line
+						let lineOldText = line.text
+	
+						let lastChar = lineOldText.charAt(lineOldText.length - 1)
+	
+						if (lastChar == indicator) {
+	
+							cm.foldCode(CodeMirror.Pos(guttered[i].ln, guttered[i].line.text.length))
+	
+						}
+	
+	
+	
+	
+					}
+	
+				}
+	
+			}
+	*/
 
 	}
 
@@ -179,6 +507,8 @@ function plugin(CodeMirror) {
 		// Cleanup
 		if (old && old != CodeMirror.Init) {
 			cm.off('change', on_change);
+			cm.off('update', on_change);
+			cm.off('viewportChange', on_change);
 
 
 		}
@@ -191,11 +521,12 @@ function plugin(CodeMirror) {
 			async function backoff(timeout: number) {
 
 				cm.persistentFolding()
+				//cm.myFoldAll()
 
 			};
 			// Set the first timeout to 50 because settings are usually ready immediately
 			// Set the first backoff to (100*2) to give a little extra time
-			setTimeout(backoff, 50, 100);
+			setTimeout(backoff, 150, 100);
 		}
 	});
 
