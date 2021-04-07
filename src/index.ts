@@ -34,8 +34,8 @@ joplin.plugins.register({
 		});	
 
 
-		await joplin.views.menuItems.create('foldAllMenuItem', 'foldAllByPlugin', MenuItemLocation.Tools, { accelerator: 'CmdOrCtrl+Shift+F' });
-		await joplin.views.menuItems.create('unfoldAllMenuItem', 'unfoldAllByPlugin', MenuItemLocation.Tools, { accelerator: 'CmdOrCtrl+Shift+U' });
+		await joplin.views.menuItems.create('foldAllMenuItem', 'foldAllByPlugin', MenuItemLocation.Tools, { accelerator: 'CmdOrCtrl+Alt+F' });
+		await joplin.views.menuItems.create('unfoldAllMenuItem', 'unfoldAllByPlugin', MenuItemLocation.Tools, { accelerator: 'CmdOrCtrl+Alt+U' });
 
 
 	},

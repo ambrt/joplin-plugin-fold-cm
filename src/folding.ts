@@ -12,7 +12,7 @@ function plugin(CodeMirror) {
 		console.log("fold all by plugin")
 		for (var l = cm.lastLine(); l >= cm.firstLine(); --l) {
 			let lineText = cm.getLine(l)
-			if (lineText.charAt(0) == "#" && lineText.indexOf(" ")>0 && lineText.charAt(lineText.length-1)!=".") {
+			if (lineText.charAt(0) == "#" && lineText.indexOf(" ")>0 ) {
 				//console.log("line to fold in all")
 				let line = cm.getLineHandle(l)
 				//console.log(line)
@@ -26,8 +26,10 @@ function plugin(CodeMirror) {
 							//let lastLine = line.parent.lines[line.parent.lines.length - 1]
 							
 							let lastLength = lineText.length
-
-							doc.replaceRange(lineText + indicator, { line: lineNr, ch: 0 }, { line: lineNr, ch: lastLength +1 })
+							if(lineText.charAt(lineText.length-1)!=indicator){
+								doc.replaceRange(lineText + indicator, { line: lineNr, ch: 0 }, { line: lineNr, ch: lastLength +1 })
+							}
+							
 							cm.foldCode(CodeMirror.Pos(lineNr, lastLength - 1), null, "fold");
 						}
 					}
@@ -122,7 +124,6 @@ function plugin(CodeMirror) {
 		let doc = cm.getDoc()
 		let line = doc.getLineHandle(lineNr)
 		function myLine(lineEach) {
-
 			if (lineEach.text.includes("![")) {
 				// fix compatitiblity with RichMarkdown preview of image
 				let richMdNr = doc.getLineNumber(lineEach)
