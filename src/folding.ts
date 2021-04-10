@@ -123,6 +123,7 @@ function plugin(CodeMirror) {
 		console.log('gutter line clicked')
 		let doc = cm.getDoc()
 		let line = doc.getLineHandle(lineNr)
+		//onsole.log(line)
 		function myLine(lineEach) {
 			if (lineEach.text.includes("![")) {
 				// fix compatitiblity with RichMarkdown preview of image
@@ -148,7 +149,7 @@ function plugin(CodeMirror) {
 					console.log(err)
 					let lastEditorLineNr = doc.lastLine()
 					let lastEditorLine = doc.getLineHandle(lastEditorLineNr)
-					console.log(lastEditorLine)
+					//console.log(lastEditorLine)
 					doc.replaceRange(lastEditorLine.text + "\n", { line: lastEditorLineNr, ch: 0 }, { line: lastEditorLineNr, ch: lastEditorLine.text.length + 1 })
 					cm.foldCode(CodeMirror.Pos(lineNr, lineEach.text.length))
 					cm.foldCode(CodeMirror.Pos(lineNr, lineEach.text.length))
@@ -183,6 +184,7 @@ function plugin(CodeMirror) {
 
 						let lastLength = lineOldText.length
 						doc.replaceRange(lineOldText + indicator, { line: lineNr, ch: 0 }, { line: lineNr, ch: lastLength + 1 })
+						cm.foldCode(CodeMirror.Pos(lineNr, lastLength + 1), null, "fold");
 
 					}
 				}
@@ -200,7 +202,7 @@ function plugin(CodeMirror) {
 	}
 
 	function on_viewportChange(cm, from, to) {
-		//console.log(from, to)
+		console.log(from, to)
 
 		if (from == 0 && to < 300) {
 			for (var l = cm.lastLine(); l >= cm.firstLine(); --l) {
