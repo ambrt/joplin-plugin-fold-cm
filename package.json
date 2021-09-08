@@ -1,10 +1,10 @@
 {
   "name": "joplin-plugin-fold-cm",
-  "version": "1.2.5",
+  "version": "2.0.1",
   "scripts": {
     "dist": "webpack --joplin-plugin-config buildMain && webpack --joplin-plugin-config buildExtraScripts && webpack --joplin-plugin-config createArchive",
     "prepare": "npm run dist",
-    "update": "npm install -g generator-joplin && yo joplin --update", 
+    "update": "npm install -g generator-joplin && yo joplin --update",
     "distrun": "npm run dist && ~/.joplin/Joplin.AppImage --env dev"
   },
   "license": "MIT",
